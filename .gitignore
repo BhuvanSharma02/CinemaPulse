@@ -1,0 +1,25 @@
+# Virtual Environment
+venv/
+env/
+
+# Environment Variables (IMPORTANT: Do not upload secrets)
+.env
+
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# Database
+instance/
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Documentation
+*.md
+
+# IDE settings
+.vscode/
+.idea/

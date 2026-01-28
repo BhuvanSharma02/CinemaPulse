@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-white rounded-3 shadow-lg border-0 text-center">
+    <div class="container-fluid py-5">
+      <h1 class="display-4 fw-bold text-primary mb-3"><i class="fas fa-chart-line"></i> CinemaPulse</h1>
+      <p class="col-md-8 fs-4 mx-auto text-muted">Real-Time Customer Feedback Analysis</p>
+      <p class="mb-4 text-secondary">Capture audience sentiment instantly and drive success with data-driven insights.</p>
+      
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
+          <a href="#features" class="btn btn-outline-secondary btn-lg px-4">Learn More</a>
+      </div>
+    </div>
+</div>
+
+<div id="features" class="row align-items-md-stretch g-4">
+    <div class="col-md-12">
+      <div class="h-100 p-5 bg-white border rounded-3 shadow-sm">
+        <h2 class="mb-3 text-primary"><i class="fas fa-star"></i> Key Features</h2>
+        <ul class="list-unstyled fs-5">
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Real-time Collection:</strong> Capture audience reactions instantly.</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Sentiment Tracking:</strong> Monitor positive and negative trends.</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Scalable Infrastructure:</strong> Designed for high availability and growth.</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>Instant Alerts:</strong> Automated notification system for critical feedback.</li>
+        </ul>
+      </div>
+    </div>
+</div>
+{% endblock %}

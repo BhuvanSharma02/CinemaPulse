@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4 text-center"><i class="fas fa-film text-primary"></i> Now Showing</h1>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for movie in movies %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 movie-card">
+                <div class="position-relative overflow-hidden">
+                    {% set poster_src = movie.poster if movie.poster is defined else movie.poster_url %}
+                    {% set view_link = movie.view_url if movie.view_url is defined else url_for('movie_details', movie_id=movie.id) %}
+                    {% set desc_text = movie.desc if movie.desc is defined else movie.description %}
+                    {% set rating_val = movie.average_rating if movie.average_rating is defined else movie.rating if movie.rating is defined else 0.0 %}
+                    
+                    <a href="{{ view_link }}">
+                        <img src="{{ poster_src }}" class="card-img-top" alt="{{ movie.title }}" style="height: 400px; object-fit: cover;">
+                    </a>
+                    <span class="position-absolute top-0 end-0 badge bg-{{ 'success' if rating_val >= 7 else 'warning' if rating_val >= 5 else 'danger' }} text-white m-2 shadow">
+                        {{ rating_val|round(1) }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">
+                        <a href="{{ view_link }}" class="text-decoration-none text-dark">{{ movie.title }}</a>
+                    </h5>
+                    <p class="card-text text-muted text-truncate">{{ desc_text }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .movie-card {
+        transition: transform 0.2s;
+    }
+    .movie-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}

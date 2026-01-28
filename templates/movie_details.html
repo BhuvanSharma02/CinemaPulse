@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mt-4">
+    <!-- Movie Info Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow border-0">
+            {# Support both 'poster' (DynamoDB) and 'poster_url' (SQLAlchemy) #}
+            <img src="{{ movie.poster if movie.poster is defined else movie.poster_url }}" class="card-img-top" alt="{{ movie.title }}">
+            <div class="card-body">
+                <h2 class="card-title fw-bold">{{ movie.title }}</h2>
+                <p class="card-text text-muted">{{ movie.desc if movie.desc is defined else movie.description }}</p>
+                <a href="{{ url_for('movies') }}" class="btn btn-outline-secondary w-100"><i class="fas fa-arrow-left"></i> Back to Movies</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews & Form Column -->
+    <div class="col-md-8">
+        
+        <!-- Submission Form (Only if logged in) -->
+        {% if current_user.is_authenticated %}
+        <div class="card shadow-sm mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-pen-fancy"></i> Write a Review</h5>
+            </div>
+            <div class="card-body">
+                {# Conditional Form Action for SQL vs DynamoDB #}
+                {% if movie.id is defined and movie.id is number %}
+                    <form action="{{ url_for('submit_feedback', movie_id=movie.id) }}" method="POST">
+                {% else %}
+                    <form action="{{ url_for('submit_feedback') }}" method="POST">
+                    <input type="hidden" name="movie_title" value="{{ movie.title }}">
+                {% endif %}
+                
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Rating</label>
+                            <select class="form-select" name="rating">
+                                <option value="10">10</option>
+                                <option value="9">9</option>
+                                <option value="8">8</option>
+                                <option value="7">7</option>
+                                <option value="6">6</option>
+                                <option value="5">5</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-bold">Your Review</label>
+                            <textarea class="form-control" name="review" rows="1" placeholder="What did you think?" required></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3 w-100 fw-bold">Post Review</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info shadow-sm">
+            <i class="fas fa-lock"></i> <a href="{{ url_for('login') }}" class="alert-link">Login</a> to write a review for this movie.
+        </div>
+        {% endif %}
+
+        <!-- Reviews List -->
+        <h3 class="mb-3"><i class="fas fa-comments text-secondary"></i> Reviews ({{ reviews|length }})</h3>
+        <div class="vstack gap-3">
+            {% for review in reviews %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                <i class="fas fa-user-circle text-muted"></i> {{ review.user.username }}
+                            </h5>
+                            <small class="text-muted">{{ review.timestamp.strftime('%B %d, %Y') }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'success' if review.rating >= 7 else 'warning' if review.rating >= 5 else 'danger' }} fs-6">
+                            {{ review.rating }}/10
+                        </span>
+                    </div>
+                    <p class="mt-3 mb-0 fs-5">{{ review.review }}</p>
+                    
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                    <form action="{{ url_for('delete_review', review_id=review.id) }}" method="POST" class="mt-2 text-end">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this review?')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No reviews yet. Be the first!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

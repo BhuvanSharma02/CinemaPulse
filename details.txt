@@ -1,0 +1,14 @@
+CinemaPulse: Real-Time Customer Feedback Analysis Powered by AWS is a dynamic platform designed to collect, process, and
+ analyze movie audience feedback in real-time. Built using Flask for backend development and hosted on AWS EC2 for scalable
+  infrastructure, the system leverages Amazon RDS for efficient database management. CinemaPulse enables film producers and
+   studios to capture real-time reactions, ratings, and reviews from viewers, offering deep insights into audience sentiment.
+    This cloud-native solution ensures seamless feedback collection, instant analytics, and high availability, making it an
+     indispensable tool for understanding and enhancing the movie-watching experience.
+
+
+The only aws service available are:
+
+IAM
+DynamoDB
+EC2
+SNS

@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+werkzeug
+boto3
+botocore
+python-dotenv
+requests

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinemaPulse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex: 1;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            margin-top: auto;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('movies') if current_user.is_authenticated else url_for('home') }}">
+        <i class="fas fa-film me-2"></i>CinemaPulse
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <form class="d-flex me-auto ms-lg-3 position-relative" action="{{ url_for('search') }}" method="GET">
+        <input id="search-input" class="form-control me-2 rounded-pill" type="search" name="q" placeholder="Search movies..." aria-label="Search" required autocomplete="off">
+        <button class="btn btn-outline-light rounded-pill" type="submit">
+            <i class="fas fa-search" id="search-icon"></i>
+            <span class="spinner-border spinner-border-sm d-none" id="search-spinner" role="status" aria-hidden="true"></span>
+        </button>
+        <div id="search-results" class="list-group position-absolute w-100 start-0 top-100 mt-1 shadow" style="z-index: 1000; display: none;"></div>
+      </form>
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('movies') if current_user.is_authenticated else url_for('home') }}"><i class="fas fa-home me-1"></i> Home</a>
+        </li>
+        {% if current_user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+            </li>
+            <li class="nav-item d-flex align-items-center ms-3">
+                <span class="text-white me-3"><i class="fas fa-user-circle"></i> {{ current_user.username }}</span>
+                <a class="btn btn-danger btn-sm rounded-pill" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </li>
+        {% else %}
+            <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link btn btn-outline-light ms-2 px-3 rounded-pill" href="{{ url_for('register') }}">Get Started</a>
+            </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer text-center text-muted">
+    <div class="container">
+        <p class="mb-0">&copy; 2026 CinemaPulse. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const searchIcon = document.getElementById('search-icon');
+    const searchSpinner = document.getElementById('search-spinner');
+    let timeout = null;
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        clearTimeout(timeout);
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        timeout = setTimeout(() => {
+            // Show spinner
+            searchIcon.classList.add('d-none');
+            searchSpinner.classList.remove('d-none');
+
+            fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+                    if (data.length > 0) {
+                        searchResults.style.display = 'block';
+                        data.forEach(movie => {
+                            // Use the pre-calculated view_url from the backend
+                            const link = movie.view_url;
+                            
+                            const item = document.createElement('a');
+                            item.href = link;
+                            item.className = 'list-group-item list-group-item-action d-flex align-items-center';
+                            
+                            const img = document.createElement('img');
+                            img.src = movie.poster || movie.poster_url; // handle both naming conventions if any
+                            img.alt = movie.title;
+                            img.style.width = '40px';
+                            img.style.height = '60px';
+                            img.style.objectFit = 'cover';
+                            img.className = 'me-3 rounded';
+                            
+                            const div = document.createElement('div');
+                            const h6 = document.createElement('h6');
+                            h6.className = 'mb-0';
+                            h6.textContent = movie.title;
+                            div.appendChild(h6);
+                            
+                            item.appendChild(img);
+                            item.appendChild(div);
+                            searchResults.appendChild(item);
+                        });
+                    } else {
+                        searchResults.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching suggestions:', err))
+                .finally(() => {
+                    // Hide spinner
+                    searchIcon.classList.remove('d-none');
+                    searchSpinner.classList.add('d-none');
+                });
+        }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

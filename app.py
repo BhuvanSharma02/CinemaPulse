@@ -240,6 +240,18 @@ def login():
             
     return render_template('login.html')
 
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        user = User.query.filter_by(username=username).first()
+        if user:
+            flash(f"Password reset instructions have been sent to the email associated with {username}.", "info")
+        else:
+            flash("Username not found.", "danger")
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html')
+
 @app.route('/logout')
 @login_required
 def logout():

@@ -20,6 +20,9 @@ instance/
 # Documentation
 *.md
 
+# Testing
+test_aws_logic.py
+
 # IDE settings
 .vscode/
 .idea/

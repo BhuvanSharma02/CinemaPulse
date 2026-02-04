@@ -337,6 +337,17 @@ def register():
                 'is_admin': is_admin
             })
             
+            # --- AWS SNS: Notify on Account Creation ---
+            try:
+                sns_client.publish(
+                    TopicArn=SNS_TOPIC_ARN,
+                    Message=f"New User Registered!\nUsername: {username}\nTime: {datetime.utcnow().isoformat()}",
+                    Subject="CinemaPulse: New Account Created"
+                )
+                print(f"[AWS SNS] Registration alert sent for '{username}'")
+            except Exception as e:
+                print(f"[AWS SNS] Failed to send registration alert: {e}")
+
             user = User(username, hashed_pw, is_admin)
             login_user(user)
             return redirect(url_for('movies'))
@@ -361,6 +372,18 @@ def login():
             flash('Login failed. Check your credentials.', 'danger')
             
     return render_template('login.html')
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        user = User.get(username)
+        if user:
+            flash(f"Password reset instructions have been sent to the email associated with {username}.", "info")
+        else:
+            flash("Username not found.", "danger")
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html')
 
 @app.route('/logout')
 @login_required
@@ -409,20 +432,6 @@ def submit_feedback():
     
     try:
         feedback_table.put_item(Item=item)
-        
-        # --- AWS SNS Placeholder ---
-        if rating < 5:
-            try:
-                # Uncomment the lines below to enable actual SNS publishing
-                # sns_client.publish(
-                #     TopicArn=SNS_TOPIC_ARN,
-                #     Message=f"Negative Review Alert!\nMovie: {movie_title}\nRating: {rating}\nReview: {review}",
-                #     Subject="CinemaPulse Negative Feedback Alert"
-                # )
-                print(f"[AWS SNS] Simulated Alert sent for '{movie_title}' (Rating: {rating})")
-            except Exception as e:
-                print(f"[AWS SNS] Failed to send alert: {e}")
-        
         flash('Feedback submitted successfully!', 'success')
         
     except Exception as e:

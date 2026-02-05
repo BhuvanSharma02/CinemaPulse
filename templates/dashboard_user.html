@@ -22,7 +22,7 @@
                             <p class="card-text text-muted">"{{ feedback.review }}"</p>
                             <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp.strftime('%B %d, %Y') }}</small>
                         </div>
-                        <div class="card-footer bg-white border-top-0 text-end">
+                        <div class="card-footer border-top-0 text-end">
                             <a href="{{ url_for('movie_details', movie_id=feedback.movie.id) }}" class="btn btn-sm btn-outline-primary">View Movie</a>
                         </div>
                     </div>

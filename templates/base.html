@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,16 +20,31 @@
             letter-spacing: 1px;
         }
         .footer {
-            background-color: #f8f9fa;
             padding: 20px 0;
             margin-top: auto;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid var(--bs-border-color);
+        }
+        .movie-card {
+            transition: transform 0.2s;
+        }
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+        #theme-toggle {
+            cursor: pointer;
         }
     </style>
+    <script>
+        // Apply theme immediately to prevent flicker
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm border-bottom border-secondary">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('movies') if current_user.is_authenticated else url_for('home') }}">
         <i class="fas fa-film me-2"></i>CinemaPulse
@@ -47,6 +62,11 @@
         <div id="search-results" class="list-group position-absolute w-100 start-0 top-100 mt-1 shadow" style="z-index: 1000; display: none;"></div>
       </form>
       <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item">
+            <button id="theme-toggle" class="btn btn-link nav-link text-white me-2">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('movies') if current_user.is_authenticated else url_for('home') }}"><i class="fas fa-home me-1"></i> Home</a>
         </li>
@@ -98,6 +118,31 @@
     const searchIcon = document.getElementById('search-icon');
     const searchSpinner = document.getElementById('search-spinner');
     let timeout = null;
+
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlElement = document.documentElement;
+
+    function updateThemeIcon(theme) {
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+
+    // Initialize icon based on current theme
+    updateThemeIcon(htmlElement.getAttribute('data-bs-theme'));
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
 
     searchInput.addEventListener('input', function() {
         const query = this.value.trim();

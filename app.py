@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, abo
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import db, User, Feedback, Movie
+from datetime import datetime
 import requests
 import os
 from dotenv import load_dotenv
@@ -275,30 +276,40 @@ def submit_feedback(movie_id):
     rating = int(request.form.get('rating'))
     review = request.form.get('review')
     
-    new_feedback = Feedback(
-        user_id=current_user.id,
-        movie_id=movie_id,
-        rating=rating,
-        review=review
-    )
+    # Check if user already reviewed this movie
+    existing_feedback = Feedback.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
     
-    db.session.add(new_feedback)
+    if existing_feedback:
+        existing_feedback.rating = rating
+        existing_feedback.review = review
+        existing_feedback.timestamp = datetime.utcnow()
+        flash('Your review has been updated!', 'success')
+    else:
+        new_feedback = Feedback(
+            user_id=current_user.id,
+            movie_id=movie_id,
+            rating=rating,
+            review=review
+        )
+        db.session.add(new_feedback)
+        flash('Review posted successfully!', 'success')
+    
     db.session.commit()
-    
-    flash('Review posted successfully!', 'success')
     return redirect(url_for('movie_details', movie_id=movie_id))
 
 @app.route('/delete_review/<int:review_id>', methods=['POST'])
 @login_required
 def delete_review(review_id):
-    if not current_user.is_admin:
+    feedback = Feedback.query.get_or_404(review_id)
+    
+    # Check if user is admin OR the owner of the review
+    if not current_user.is_admin and current_user.id != feedback.user_id:
         abort(403)
         
-    feedback = Feedback.query.get_or_404(review_id)
     db.session.delete(feedback)
     db.session.commit()
     flash('Review deleted.', 'info')
-    return redirect(url_for('dashboard'))
+    return redirect(request.referrer or url_for('dashboard'))
 
 if __name__ == '__main__':
     with app.app_context():

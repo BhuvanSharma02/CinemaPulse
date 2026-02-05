@@ -248,7 +248,8 @@ def perform_search_logic(query):
     if api_key:
         try:
             url = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={query}&language=en-US&page=1"
-            response = requests.get(url)
+            headers = {'User-Agent': 'CinemaPulse/1.0'}
+            response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 tmdb_results = response.json().get('results', [])
                 for m in tmdb_results:
@@ -418,26 +419,82 @@ def submit_feedback():
     rating = int(request.form.get('rating'))
     review = request.form.get('review')
     
-    feedback_id = str(uuid.uuid4())
-    timestamp = datetime.utcnow().isoformat()
-    
-    item = {
-        'id': feedback_id,
-        'user_id': current_user.id,
-        'movie_title': movie_title,
-        'rating': rating,
-        'review': review,
-        'timestamp': timestamp
-    }
-    
+    # Check for existing review by this user for this movie
     try:
-        feedback_table.put_item(Item=item)
-        flash('Feedback submitted successfully!', 'success')
+        response = feedback_table.scan(
+            FilterExpression=boto3.dynamodb.conditions.Attr('user_id').eq(current_user.id) & boto3.dynamodb.conditions.Attr('movie_title').eq(movie_title)
+        )
+        existing_items = response.get('Items', [])
         
+        timestamp = datetime.utcnow().isoformat()
+        
+        if existing_items:
+            # Update existing review
+            item = existing_items[0]
+            feedback_table.update_item(
+                Key={'id': item['id']},
+                UpdateExpression="set rating=:r, review=:v, #ts=:t",
+                ExpressionAttributeNames={'#ts': 'timestamp'},
+                ExpressionAttributeValues={
+                    ':r': rating,
+                    ':v': review,
+                    ':t': timestamp
+                }
+            )
+            flash('Your review has been updated!', 'success')
+        else:
+            # Create new review
+            feedback_id = str(uuid.uuid4())
+            item = {
+                'id': feedback_id,
+                'user_id': current_user.id,
+                'movie_title': movie_title,
+                'rating': rating,
+                'review': review,
+                'timestamp': timestamp
+            }
+            feedback_table.put_item(Item=item)
+            flash('Feedback submitted successfully!', 'success')
+
+        # --- AWS SNS Placeholder ---
+        if rating < 5:
+            try:
+                # Uncomment the lines below to enable actual SNS publishing
+                # sns_client.publish(
+                #     TopicArn=SNS_TOPIC_ARN,
+                #     Message=f"Negative Review Alert!\nMovie: {movie_title}\nRating: {rating}\nReview: {review}",
+                #     Subject="CinemaPulse Negative Feedback Alert"
+                # )
+                print(f"[AWS SNS] Simulated Alert sent for '{movie_title}' (Rating: {rating})")
+            except Exception as e:
+                print(f"[AWS SNS] Failed to send alert: {e}")
+                
     except Exception as e:
         flash(f'Error submitting feedback: {e}', 'danger')
 
     return redirect(url_for('dashboard'))
+
+@app.route('/delete_review/<review_id>', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    try:
+        # Get review to check ownership
+        response = feedback_table.get_item(Key={'id': review_id})
+        feedback = response.get('Item')
+        
+        if not feedback:
+            abort(404)
+            
+        # Check if user is admin OR the owner of the review
+        if not current_user.is_admin and current_user.id != feedback['user_id']:
+            abort(403)
+            
+        feedback_table.delete_item(Key={'id': review_id})
+        flash('Review deleted.', 'info')
+    except Exception as e:
+        flash(f'Error deleting review: {e}', 'danger')
+        
+    return redirect(request.referrer or url_for('dashboard'))
 
 if __name__ == '__main__':
     # Uncomment this to seed movies if you have created the table 'CinemaPulseMovies'

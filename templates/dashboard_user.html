@@ -13,7 +13,7 @@
                 <div class="col">
                     <div class="card shadow-sm h-100 border-start border-4 border-{{ 'success' if feedback.rating >= 7 else 'warning' if feedback.rating >= 5 else 'danger' }}">
                         <div class="card-body">
-                            {% if feedback.movie %}
+                            {% if feedback.movie is defined and feedback.movie.title is defined %}
                                 <h5 class="card-title fw-bold">{{ feedback.movie.title }}</h5>
                             {% else %}
                                 <h5 class="card-title fw-bold">{{ feedback.movie_title }}</h5>
@@ -26,14 +26,14 @@
                             </div>
                             <p class="card-text text-muted">"{{ feedback.review }}"</p>
                             
-                            {% if feedback.timestamp.strftime is defined %}
+                            {% if feedback.timestamp is defined and feedback.timestamp.strftime is defined %}
                                 <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp.strftime('%B %d, %Y') }}</small>
                             {% else %}
                                 <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp }}</small>
                             {% endif %}
                         </div>
                         <div class="card-footer border-top-0 text-end">
-                            {% if feedback.movie %}
+                            {% if feedback.movie is defined and feedback.movie.id is defined %}
                                 <a href="{{ url_for('movie_details', movie_id=feedback.movie.id) }}" class="btn btn-sm btn-outline-primary">View Movie</a>
                             {% else %}
                                 <a href="{{ url_for('movie_details', movie_title=feedback.movie_title) }}" class="btn btn-sm btn-outline-primary">View Movie</a>

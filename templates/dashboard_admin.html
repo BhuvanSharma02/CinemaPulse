@@ -27,14 +27,14 @@
                     {% for feedback in feedbacks %}
                         <tr>
                             <td class="ps-4 fw-bold text-secondary">
-                                {% if feedback.user.username %}
+                                {% if feedback.user is defined and feedback.user.username is defined %}
                                     {{ feedback.user.username }}
                                 {% else %}
                                     {{ feedback.user_id }}
                                 {% endif %}
                             </td>
                             <td class="fw-bold text-primary">
-                                {% if feedback.movie.title %}
+                                {% if feedback.movie is defined and feedback.movie.title is defined %}
                                     {{ feedback.movie.title }}
                                 {% else %}
                                     {{ feedback.movie_title }}

@@ -98,7 +98,7 @@
                             <div class="me-3">
                                 <h5 class="fw-bold mb-0">
                                     <i class="fas fa-user-circle text-muted"></i> 
-                                    {% if review.user.username %}
+                                    {% if review.user is defined and review.user.username is defined %}
                                         {{ review.user.username }}
                                     {% else %}
                                         {{ review.user_id }}

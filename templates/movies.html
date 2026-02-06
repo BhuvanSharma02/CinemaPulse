@@ -10,7 +10,15 @@
             <div class="card h-100 shadow-sm border-0 movie-card">
                 <div class="position-relative overflow-hidden">
                     {% set poster_src = movie.poster if movie.poster is defined else movie.poster_url %}
-                    {% set view_link = movie.view_url if movie.view_url is defined else url_for('movie_details', movie_id=movie.id) %}
+                    
+                    {% if movie.view_url is defined %}
+                        {% set view_link = movie.view_url %}
+                    {% elif movie.title is defined and not movie.id is defined %}
+                        {% set view_link = url_for('movie_details', movie_title=movie.title) %}
+                    {% else %}
+                        {% set view_link = url_for('movie_details', movie_id=movie.id) %}
+                    {% endif %}
+                    
                     {% set desc_text = movie.desc if movie.desc is defined else movie.description %}
                     {% set rating_val = movie.average_rating if movie.average_rating is defined else movie.rating if movie.rating is defined else 0.0 %}
                     

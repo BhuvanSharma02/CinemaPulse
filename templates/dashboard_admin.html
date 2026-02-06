@@ -26,15 +26,35 @@
                 <tbody>
                     {% for feedback in feedbacks %}
                         <tr>
-                            <td class="ps-4 fw-bold text-secondary">{{ feedback.user.username }}</td>
-                            <td class="fw-bold text-primary">{{ feedback.movie.title }}</td>
+                            <td class="ps-4 fw-bold text-secondary">
+                                {% if feedback.user.username %}
+                                    {{ feedback.user.username }}
+                                {% else %}
+                                    {{ feedback.user_id }}
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-primary">
+                                {% if feedback.movie.title %}
+                                    {{ feedback.movie.title }}
+                                {% else %}
+                                    {{ feedback.movie_title }}
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge bg-{{ 'success' if feedback.rating >= 7 else 'warning' if feedback.rating >= 5 else 'danger' }}">
                                     {{ feedback.rating }}/10
                                 </span>
                             </td>
                             <td class="text-muted small text-truncate" style="max-width: 200px;">{{ feedback.review }}</td>
-                            <td><small>{{ feedback.timestamp.strftime('%Y-%m-%d') }}</small></td>
+                            <td>
+                                <small>
+                                    {% if feedback.timestamp.strftime %}
+                                        {{ feedback.timestamp.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        {{ feedback.timestamp }}
+                                    {% endif %}
+                                </small>
+                            </td>
                             <td>
                                 <form action="{{ url_for('delete_review', review_id=feedback.id) }}" method="POST" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Review" onclick="return confirm('Are you sure?')">

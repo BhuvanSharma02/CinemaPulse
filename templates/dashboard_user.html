@@ -13,17 +13,31 @@
                 <div class="col">
                     <div class="card shadow-sm h-100 border-start border-4 border-{{ 'success' if feedback.rating >= 7 else 'warning' if feedback.rating >= 5 else 'danger' }}">
                         <div class="card-body">
-                            <h5 class="card-title fw-bold">{{ feedback.movie.title }}</h5>
+                            {% if feedback.movie %}
+                                <h5 class="card-title fw-bold">{{ feedback.movie.title }}</h5>
+                            {% else %}
+                                <h5 class="card-title fw-bold">{{ feedback.movie_title }}</h5>
+                            {% endif %}
+                            
                             <div class="mb-2">
                                 <span class="fw-bold text-{{ 'success' if feedback.rating >= 7 else 'warning' if feedback.rating >= 5 else 'danger' }}">
                                     Rating: {{ feedback.rating }}/10
                                 </span>
                             </div>
                             <p class="card-text text-muted">"{{ feedback.review }}"</p>
-                            <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp.strftime('%B %d, %Y') }}</small>
+                            
+                            {% if feedback.timestamp.strftime is defined %}
+                                <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp.strftime('%B %d, %Y') }}</small>
+                            {% else %}
+                                <small class="text-secondary"><i class="far fa-clock"></i> {{ feedback.timestamp }}</small>
+                            {% endif %}
                         </div>
                         <div class="card-footer border-top-0 text-end">
-                            <a href="{{ url_for('movie_details', movie_id=feedback.movie.id) }}" class="btn btn-sm btn-outline-primary">View Movie</a>
+                            {% if feedback.movie %}
+                                <a href="{{ url_for('movie_details', movie_id=feedback.movie.id) }}" class="btn btn-sm btn-outline-primary">View Movie</a>
+                            {% else %}
+                                <a href="{{ url_for('movie_details', movie_title=feedback.movie_title) }}" class="btn btn-sm btn-outline-primary">View Movie</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
